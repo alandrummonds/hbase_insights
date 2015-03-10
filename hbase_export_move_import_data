@@ -1,0 +1,82 @@
+# Apache HBase ™ Reference Guide
+# http://hbase.apache.org/book.html
+# Apache HBase Team <hbase-dev@lists.apache.org> Version 2.0.0-SNAPSHOT
+#----------------------------------------------------
+
+
+# Start date with HBASE Shell
+#----------------------------------------------------
+hbase(main):006:0> SimpleDateFormat.new("dd/MM/yy HH:mm:ss").parse("01/01/15 00:00:00",ParsePosition.new(0)).getTime()
+=> 1420077600000
+
+
+# Stop date with HBASE Shell
+#----------------------------------------------------
+hbase(main):007:0> SimpleDateFormat.new("dd/MM/yy HH:mm:ss").parse("02/01/15 00:00:00",ParsePosition.new(0)).getTime()
+=> 1420164000000
+
+
+# HBASE Export and VM arguments and parameters
+#----------------------------------------------------
+#-Dhbase.rpc.timeout
+# This is for the RPC layer to define how long HBase client applications take for a remote call to time out. It uses pings to check connections
+# but will eventually throw a TimeoutException.
+# Default:60000
+#
+#-Dhbase.regionserver.lease.period
+#  HRegion server lease period in milliseconds. Default is 60 seconds. Clients must report in within this period else they are considered dead.
+#  Default: 60000
+#
+#-Dhbase.client.scanner.caching
+# Number of rows that will be fetched when calling next on a scanner if it is not served from (local, client) memory. Higher caching values will # enable faster scanners but will eat up more memory and some calls of next may take longer and longer times when the cache is empty. Do not set # this value such that the time between invocations is greater than the scanner timeout; i.e. hbase.regionserver.lease.period
+# Default: 1
+#
+#-Dmapreduce.map.speculative
+# If true, then multiple instances of some map tasks may be executed in parallel.
+#
+#-Dmapreduce.reduce.speculative
+# If true, then multiple instances of some reduce tasks may be executed in parallel.
+#
+# parameter 1 (tablename)
+# parameter 2 (outputdir)
+# parameter 3 (versions)
+# parameter 4 (starttime)
+# parameter 5 (endtime)
+#----------------------------------------------------
+
+[root@srv1 bin]# ./hbase org.apache.hadoop.hbase.mapreduce.Export -Dhbase.rpc.timeout=1200000 -Dhbase.regionserver.lease.period=1200000 -Dhbase.client.scanner.caching=500 -Dmapreduce.map.speculative=false -Dmapreduce.reduce.speculative=false myhbase_table /data/hbase_01_table 1 1420077600000 1420164000000
+
+
+# SSH destination server
+#----------------------------------------------------
+[root@srv1 /]# ssh -i my.pem ec2-user@destination_server
+
+
+# HDFS Create directory and exit session
+#----------------------------------------------------
+[root@srv2 /]# sudo -u hdfs hadoop fs -mkdir /aws_tmp/
+[root@srv2 /]# sudo -u hdfs hadoop fs -chown -R root:root /aws_tmp
+[root@srv2 /]# exit
+
+
+# HDFS distributed copy
+#----------------------------------------------------
+# parameter 1 -log <logdir>  (Write logs to <logdir>)
+# DistCp keeps logs of each file it attempts to copy as map output. If a map fails, the log output will not be retained if it is re-executed.
+#
+# parameter 2 (Source URI)
+# parameter 3 (Destination URI)
+#----------------------------------------------------
+[root@srv1 /]# su - hdfs
+[hdfs@srv1 /]# hadoop distcp -log /tmp/log_distcp hdfs://10.0.0.0.1:8020/data/hbase_01_table/ hdfs://172.0.0.0.2:8020/aws_tmp/
+
+
+# HBASE Import for another HBase version
+#----------------------------------------------------
+#-Dhbase.import.version
+# To import 0.94 exported files in a 0.96 cluster or onwards, you need to set system property "hbase.import.version" when running the import command
+#
+# parameter 1 (tablename)
+# parameter 2 (inputdir)
+#----------------------------------------------------
+[root@srv2 bin]# ./hbase -Dhbase.import.version=0.96 org.apache.hadoop.hbase.mapreduce.Import myhbase_table /aws_tmp/hbase_01_table
