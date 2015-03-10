@@ -85,4 +85,3 @@ hbase(main):007:0> SimpleDateFormat.new("dd/MM/yy HH:mm:ss").parse("02/01/15 00:
 # parameter 2 (inputdir)
 #----------------------------------------------------
 [root@srv2 bin]# ./hbase -Dhbase.import.version=0.96 org.apache.hadoop.hbase.mapreduce.Import myhbase_table /aws_tmp/hbase_01_table
-
