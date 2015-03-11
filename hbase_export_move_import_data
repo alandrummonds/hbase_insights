@@ -37,6 +37,11 @@ hbase(main):007:0> SimpleDateFormat.new("dd/MM/yy HH:mm:ss").parse("02/01/15 00:
 #-Dmapreduce.reduce.speculative
 # If true, then multiple instances of some reduce tasks may be executed in parallel.
 #
+# Warning!
+# In addition to other options, you can induce compressed sequence formats when using HBase Export.
+# -Dmapred.output.compress=true
+# -Dmapred.output.compression.codec=org.apache.hadoop.io.compress.GzipCodec
+#
 # parameter 1 (tablename)
 # parameter 2 (outputdir)
 # parameter 3 (versions)
